@@ -3,13 +3,14 @@ package logic.level;
 import logic.brick.Brick;
 
 import java.util.List;
+import java.util.Observer;
 
 /**
  * Interface that represents the basics of a level to be played on.
  *
- * @author Juan-Pablo Silva
+ * @author Juan-Pablo Silva, Tomás Torres
  */
-public interface Level {
+public interface Level extends Observer {
     /**
      * Gets the level's name. Each level must have a name.
      *
@@ -72,4 +73,35 @@ public interface Level {
      * @param level the next level of a level object
      */
     void setNextLevel(Level level);
+
+    /**
+     *
+     * Adds an observer to the set of observers for this object,
+     * provided that it is not the same as some observer already in the set.
+     *
+     * @param game observer to be added
+     */
+    void addObserverGame(Observer game);
+
+    /**
+     *
+     * Adds the glass score to the total points of a level, used when generating levels
+     *
+     */
+    void addMaxPointsGlass();
+
+    /**
+     *
+     * Adds the wood score to the total points of a level, used when generating levels
+     *
+     */
+    void addMaxPointsWood();
+
+    /**
+     *
+     * gets the current points accumulated in a level
+     *
+     * @return number of current points
+     */
+    int getCurrentPoints();
 }
