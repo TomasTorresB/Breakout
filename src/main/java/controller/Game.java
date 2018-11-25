@@ -159,7 +159,7 @@ public class Game implements Observer {
     }
 
     public boolean isGameOver() {
-        return this.currentLevel == null || this.balls == 0;
+        return this.currentLevel == finalLevel || this.balls == 0;
     }
 
     public int numberOfBricks() {
