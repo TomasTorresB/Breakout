@@ -1,0 +1,6 @@
+package GUI;
+
+
+public enum BreakoutGameType {
+    PLAYER, BALL, WALL, GLASSBRICK, METALBRICK, WOODENBRICK, GOLDENBRICK
+}
