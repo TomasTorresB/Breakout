@@ -3,15 +3,11 @@ package GUI;
 import GUI.Control.*;
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.entity.Entity;
-import com.almasb.fxgl.entity.component.Component;
-import com.almasb.fxgl.gameplay.GameState;
 import com.almasb.fxgl.input.Input;
 import com.almasb.fxgl.input.UserAction;
 import com.almasb.fxgl.physics.CollisionHandler;
 import com.almasb.fxgl.physics.HitBox;
-import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.settings.GameSettings;
-import controller.Game;
 import facade.HomeworkTwoFacade;
 import javafx.geometry.Point2D;
 import javafx.scene.input.KeyCode;
@@ -27,8 +23,11 @@ import static GUI.BreakoutGameFactory.*;
 
 public class BreakoutApp extends GameApplication implements Observer {
     private HomeworkTwoFacade hw2 = new HomeworkTwoFacade();
-    private int cantBricks = 5;
-    private int circlePos = 640;
+    private int cantBricks = 15;
+    private int circlePosX = 640;
+    private int circlePosY = 505;
+    private int largoBrick = 60;
+    private int anchoBrick = 30;
 
     private PlayerControl getPlayerControl() {
         return getGameWorld().getSingleton(BreakoutGameType.PLAYER).get().getComponent(PlayerControl.class);
@@ -71,7 +70,7 @@ public class BreakoutApp extends GameApplication implements Observer {
         int anc = 0;
         for (Brick b : BRICKS) {
             if (b.isGlassBrick()) {
-                Entity brick = newGlassBrick(x + 60 * lar, y + 31 * anc, 60, 30);
+                Entity brick = newGlassBrick(x + largoBrick * lar, y + anchoBrick * anc, largoBrick, anchoBrick);
                 brick.getComponent(GlassBrickControl.class).setBrick((GlassBrick) b);
                 getGameWorld().addEntities(brick);
                 cont++;
@@ -79,7 +78,7 @@ public class BreakoutApp extends GameApplication implements Observer {
                 anc = cont / 10;
             }
             else if (b.isWoodenBrick()) {
-                Entity brick = newWoodenBrick(x + 60 * lar, y + 31 * anc, 60, 30);
+                Entity brick = newWoodenBrick(x + largoBrick * lar, y + anchoBrick * anc, largoBrick, anchoBrick);
                 brick.getComponent(WoodenBrickControl.class).setBrick((WoodenBrick) b);
                 getGameWorld().addEntities(brick);
                 cont++;
@@ -87,7 +86,7 @@ public class BreakoutApp extends GameApplication implements Observer {
                 anc = cont / 10;
             }
             else if (b.isMetalBrick()) {
-                Entity brick = newMetalBrick(x + 60 * lar, y + 31 * anc, 60, 30);
+                Entity brick = newMetalBrick(x + largoBrick * lar, y + anchoBrick * anc, largoBrick, anchoBrick);
                 brick.getComponent(MetalBrickControl.class).setBrick((MetalBrick) b);
                 getGameWorld().addEntities(brick);
                 cont++;
@@ -95,7 +94,7 @@ public class BreakoutApp extends GameApplication implements Observer {
                 anc = cont / 10;
             }
             else {
-                Entity brick = newGoldenBrick(x + 60 * lar, y + 31 * anc, 60, 30);
+                Entity brick = newGoldenBrick(x + largoBrick * lar, y + anchoBrick * anc, largoBrick, anchoBrick);
                 getGameWorld().addEntities(brick);
                 cont++;
                 lar = cont % 10;
@@ -136,7 +135,7 @@ public class BreakoutApp extends GameApplication implements Observer {
         input.addAction(new UserAction("Release Ball") {
             @Override
             protected void onAction() {
-                if ((getGameState().getInt("Ball state") == 0) && getGameState().getInt("GAME OVER") == 0){
+                if ((getGameState().getInt("Ball state") == 0) && getGameState().getInt("GAME OVER") == 0 && hw2.hasCurrentLevel()) {
                     getGameState().setValue("Ball state",1);
                     getBallControl().release();
                 }
@@ -146,13 +145,13 @@ public class BreakoutApp extends GameApplication implements Observer {
             @Override
             protected void onActionBegin() {
                 if (getGameState().getInt("GAME OVER") == 0) {
-                    Level level = hw2.newLevelWithBricksFull("test", cantBricks, 1, 0, currentTimeMillis());
+                    Level level = hw2.newLevelWithBricksFull("test", cantBricks, 0.5, 0.3, currentTimeMillis());
                     getGameState().setValue("Level name", "Breakout");
                     if (!hw2.hasCurrentLevel()) {
                         hw2.setCurrentLevel(level);
                         DisplayCurrentLevel();
                     } else {
-                        getGameState().increment("Number of levels", 1);
+                        getGameState().increment("Levels left", 1);
                         hw2.addPlayingLevel(level);
                     }
                 }
@@ -164,16 +163,16 @@ public class BreakoutApp extends GameApplication implements Observer {
     protected void initGameVars(Map<String, Object> vars) {
 
         vars.put("Total points",0);
+        vars.put("Level points",0);
         vars.put("Ball state",0); // 0 inicialmente en reposo, 1 en movimiento
         vars.put("Balls left",hw2.getBallsLeft());
         vars.put("Level name","No level");
-        vars.put("Number of levels",0);
+        vars.put("Levels left",0);
+        vars.put("Levels completed",0);
         vars.put("GAME OVER",0); // 0 todavia no termina,1 termino
     }
 
-    public void endGame() {
-        getGameState().increment("GAME OVER",1);
-        getPlayerControl().getEntity().removeFromWorld();
+    public void clearGame() {
         getGameWorld().getEntitiesByType(BreakoutGameType.GLASSBRICK)
                 .forEach(e->e.removeFromWorld());
         getGameWorld().getEntitiesByType(BreakoutGameType.WOODENBRICK)
@@ -182,7 +181,6 @@ public class BreakoutApp extends GameApplication implements Observer {
                 .forEach(e->e.removeFromWorld());
         getGameWorld().getEntitiesByType(BreakoutGameType.GOLDENBRICK)
                 .forEach(e->e.removeFromWorld());
-
     }
 
     @Override
@@ -197,17 +195,18 @@ public class BreakoutApp extends GameApplication implements Observer {
                         if (boxWall.getName().equals("BOT")) {
                             ball.removeFromWorld();
                             getGameState().setValue("Balls left",hw2.dropBall());
-                            circlePos -= 23;
-                            getGameWorld().getEntitiesAt(new Point2D(circlePos,200)).forEach(e->e.removeFromWorld());
+                            circlePosX -= 23;
+                            getGameWorld().getEntitiesAt(new Point2D(circlePosX,circlePosY)).forEach(e->e.removeFromWorld());
                             getGameState().setValue("Ball state",0);
+                            getPlayerControl().getEntity().removeFromWorld();
                             if (getGameState().getInt("Balls left") > 0) {
-                                getPlayerControl().getEntity().removeFromWorld();
                                 Entity player2 = newPlayer(250, 525);
                                 Entity ball2 = newBall(295, 505);
                                 getGameWorld().addEntities(player2, ball2);
                             }
                             else {
-                                endGame();
+                                clearGame();
+                                getGameState().increment("GAME OVER",1);
                                 Text text7 = getUIFactory().newText("GAME OVER", Color.DARKGOLDENROD, 22);
                                 text7.setTranslateX(250);
                                 text7.setTranslateY(300);
@@ -258,18 +257,14 @@ public class BreakoutApp extends GameApplication implements Observer {
                     @Override
                     protected void onHitBoxTrigger(Entity ball, Entity brick,
                                                    HitBox boxBall, HitBox boxBrick) {
+                        clearGame();
+                        getPlayerControl().getEntity().removeFromWorld();
+                        ball.removeFromWorld();
+                        getGameState().increment("Levels completed",1);
                         if (hw2.hasNextLevel()) {
-                            getGameWorld().getEntitiesByType(BreakoutGameType.GLASSBRICK)
-                                    .forEach(e -> e.removeFromWorld());
-                            getGameWorld().getEntitiesByType(BreakoutGameType.WOODENBRICK)
-                                    .forEach(e -> e.removeFromWorld());
-                            getGameWorld().getEntitiesByType(BreakoutGameType.METALBRICK)
-                                    .forEach(e -> e.removeFromWorld());
-                            getGameWorld().getEntitiesByType(BreakoutGameType.GOLDENBRICK)
-                                    .forEach(e -> e.removeFromWorld());
+                            getGameState().setValue("Level points",0);
+                            getGameState().increment("Levels left",-1);
                             hw2.goNextLevel();
-                            getBallControl().getEntity().removeFromWorld();
-                            getPlayerControl().getEntity().removeFromWorld();
                             getGameState().setValue("Ball state", 0);
                             Entity player2 = newPlayer(250, 525);
                             Entity ball2 = newBall(295, 505);
@@ -277,8 +272,7 @@ public class BreakoutApp extends GameApplication implements Observer {
                             DisplayCurrentLevel();
                         }
                         else {
-                            endGame();
-                            ball.removeFromWorld();
+                            getGameState().increment("GAME OVER",1);
                             Text text8 = getUIFactory().newText("CONGRATULATIONS", Color.DARKGOLDENROD, 22);
                             text8.setTranslateX(245);
                             text8.setTranslateY(300);
@@ -288,6 +282,14 @@ public class BreakoutApp extends GameApplication implements Observer {
                 });
     }
 
+    protected void createCircle(int x, int y) {
+        Entity e = new Entity();
+        Circle lives = new Circle(10, Color.RED);
+        e.translate(new Point2D(x,y));
+        e.setView(lives);
+        getGameWorld().addEntity(e);
+    }
+
     @Override
     protected void initUI() {
         Text text = getUIFactory().newText("xdxdxd", Color.DARKGOLDENROD, 35);
@@ -295,6 +297,7 @@ public class BreakoutApp extends GameApplication implements Observer {
         text.setTranslateY(50);
         text.textProperty().bind(getGameState().stringProperty("Level name"));
         getGameScene().addUINode(text);
+
         Text text2 = getUIFactory().newText("Total Points:", Color.DARKGOLDENROD, 22);
         text2.setTranslateX(635);
         text2.setTranslateY(100);
@@ -304,26 +307,45 @@ public class BreakoutApp extends GameApplication implements Observer {
         text3.setTranslateY(125);
         text3.textProperty().bind(getGameState().intProperty("Total points").asString());
         getGameScene().addUINode(text3);
-        Text text4 = getUIFactory().newText("Balls left:", Color.DARKGOLDENROD, 22);
-        text4.setTranslateX(640);
-        text4.setTranslateY(175);
-        getGameScene().addUINode(text4);
+
+        Text levelPoints = getUIFactory().newText("Level Points:", Color.DARKGOLDENROD, 22);
+        levelPoints.setTranslateX(635);
+        levelPoints.setTranslateY(195);
+        getGameScene().addUINode(levelPoints);
+        Text lpointsUpdate = getUIFactory().newText("", Color.DARKGOLDENROD, 22);
+        lpointsUpdate.setTranslateX(670);
+        lpointsUpdate.setTranslateY(220);
+        lpointsUpdate.textProperty().bind(getGameState().intProperty("Level points").asString());
+        getGameScene().addUINode(lpointsUpdate);
+
+        Text levelsCompleted = getUIFactory().newText("Number of levels completed:", Color.DARKGOLDENROD, 14);
+        levelsCompleted.setTranslateX(610);
+        levelsCompleted.setTranslateY(290);
+        getGameScene().addUINode(levelsCompleted);
+        Text completedUpdate = getUIFactory().newText("", Color.DARKGOLDENROD, 22);
+        completedUpdate.setTranslateX(685);
+        completedUpdate.setTranslateY(315);
+        completedUpdate.textProperty().bind(getGameState().intProperty("Levels completed").asString());
+        getGameScene().addUINode(completedUpdate);
+
         Text text9 = getUIFactory().newText("Number of levels left:", Color.DARKGOLDENROD, 17);
         text9.setTranslateX(620);
-        text9.setTranslateY(245);
+        text9.setTranslateY(385);
         getGameScene().addUINode(text9);
         Text text6 = getUIFactory().newText("", Color.DARKGOLDENROD, 22);
         text6.setTranslateX(685);
-        text6.setTranslateY(270);
-        text6.textProperty().bind(getGameState().intProperty("Number of levels").asString());
+        text6.setTranslateY(410);
+        text6.textProperty().bind(getGameState().intProperty("Levels left").asString());
         getGameScene().addUINode(text6);
+
+        Text text4 = getUIFactory().newText("Balls left:", Color.DARKGOLDENROD, 22);
+        text4.setTranslateX(640);
+        text4.setTranslateY(480);
+        getGameScene().addUINode(text4);
+
         for (int i =0;i < hw2.getBallsLeft();i++) {
-            Entity e = new Entity();
-            Circle lives = new Circle(10, Color.RED);
-            e.translate(new Point2D(circlePos,200));
-            e.setView(lives);
-            getGameWorld().addEntity(e);
-            circlePos += 23;
+            createCircle(circlePosX,circlePosY);
+            circlePosX += 23;
         }
     }
 
@@ -331,19 +353,20 @@ public class BreakoutApp extends GameApplication implements Observer {
     public void update(Observable o, Object arg) {
         if (arg instanceof String) {
             if (arg.equals("maxLevelScoreUpdate")) {
+                getGameState().setValue("Level points",0);
+                getGameState().increment("Levels completed",1);
                 getGameWorld().getEntitiesByType(BreakoutGameType.METALBRICK)
                         .forEach(e->e.removeFromWorld());
                 DisplayCurrentLevel();
-                getGameState().increment("Number of levels",-1);
+                getGameState().increment("Levels left",-1);
             } else if (arg.equals("MetalBrickDestroyedUpdate")) {
-                Entity e = new Entity();
-                Circle lives = new Circle(10, Color.RED);
-                e.setView(lives);
-                e.translate(new Point2D(circlePos,200));
-                getGameWorld().addEntity(e);
-                circlePos += 23;
+                createCircle(circlePosX,circlePosY);
+                circlePosX += 23;
             } else if (arg.equals("Game ended")) {
-                endGame();
+                clearGame();
+                getGameState().increment("Levels completed",1);
+                getGameState().increment("GAME OVER",1);
+                getPlayerControl().getEntity().removeFromWorld();
                 getBallControl().getEntity().removeFromWorld();
                 Text text8 = getUIFactory().newText("CONGRATULATIONS!", Color.DARKGOLDENROD, 22);
                 text8.setTranslateX(245);
@@ -355,6 +378,7 @@ public class BreakoutApp extends GameApplication implements Observer {
         else {
             int res = (int) arg;
             getGameState().increment("Total points",res);
+            getGameState().increment("Level points",res);
         }
     }
 

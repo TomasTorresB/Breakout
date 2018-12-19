@@ -58,7 +58,6 @@ public final class BreakoutGameFactory  {
                 .type(BreakoutGameType.GOLDENBRICK)
                 .viewFromNodeWithBBox(FXGL.getAssetLoader().loadTexture("golden.png", v, w))
                 .with(physics, new CollidableComponent(true))
-                .with(new MetalBrickControl())
                 .build();
     }
 
