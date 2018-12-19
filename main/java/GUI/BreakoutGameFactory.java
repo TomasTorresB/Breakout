@@ -16,6 +16,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
+/**
+ *Factory class that creates most objects used on the app
+ *
+ */
 public final class BreakoutGameFactory  {
 
     public static Entity newGlassBrick(double x, double y, double v,double w) {

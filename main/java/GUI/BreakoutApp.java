@@ -21,6 +21,12 @@ import java.util.*;
 
 import static GUI.BreakoutGameFactory.*;
 
+/**
+ * Game graphic controller
+ *
+ * @author Tomás Torres
+ */
+
 public class BreakoutApp extends GameApplication implements Observer {
     private HomeworkTwoFacade hw2 = new HomeworkTwoFacade();
     private int cantBricks = 15;

@@ -6,6 +6,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import logic.brick.WoodenBrick;
 
+/**
+ * Component used on the WoodBrick entity
+ * Can be binded to a logic Woodenbrick
+ *
+ */
 public class WoodenBrickControl extends Component {
     private WoodenBrick wb;
     private int Health;

@@ -2,6 +2,10 @@ package logic.brick;
 
 import logic.level.Level;
 
+/**
+ * Used for identifying a golden brick in the brick list
+ * Most of the logic is implemented in the GUI
+ */
 public class GoldenBrick implements Brick {
 
     @Override

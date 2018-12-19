@@ -4,6 +4,11 @@ import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import javafx.geometry.Point2D;
 
+/**
+ * Component used on the Player entity
+ * Has methods to control the player
+ *
+ */
 public class PlayerControl  extends Component {
 
     public void moveRight() {

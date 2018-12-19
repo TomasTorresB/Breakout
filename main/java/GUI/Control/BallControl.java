@@ -4,6 +4,12 @@ import com.almasb.fxgl.entity.component.Component;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import javafx.geometry.Point2D;
 
+/**
+ * Component used on the ball entity
+ * With methods to control the ball
+ *
+ */
+
 public class BallControl extends Component {
 
     public void release() {

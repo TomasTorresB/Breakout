@@ -6,6 +6,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import logic.brick.MetalBrick;
 
+/**
+ * Component used on the MetalBrick entity
+ * Can be binded to a logic Metalbrick
+ *
+ */
 public class MetalBrickControl extends Component {
     private MetalBrick mb;
     private int Health;
