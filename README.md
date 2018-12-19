@@ -4,27 +4,27 @@ Breakout is an arcade game that consists of using a horizontal bar and a ball th
 bounces off the walls of the screen, to hit bricks positioned on top of the
 screen.
 
-## Implementation
+## Code used
 
-Breakout has 3 main classes:
-- Game: In charge of implementing the game logic
-- Level: Which simulates the behaviour of a ingame level
-- Brick: Which simulates the behaviour of a ingame brick
+The code given by Juan Pablo was used as the base code for this homework. Although some tweaks were given so that the game graphic controller could observe the game logic controller. Also a new brick was introduced, whose logic is explained in the next section, and a new brick class was created as a consecuence.
 
-In general, the game keeps track of the player balls,current level and the number of points acquiered. It is worth noting that the current level has a reference to the next playable level, similar to a linked list, so in order to add a new level a recursion was neede.
+## Features
 
-In order for the game class to react according to the ingame changes such as brick destructions or end of a level, an observer pattern was used where the game has the role of observer and the levels with the bricks are the observable objects. Since level also has to react according to bricks it was given both an observable and observer design. 
+Additionally to the core basic game mechanics, 2 big features and 2 small features were implemented. 
 
-## How to use
+Firstly, a new cracked state was to given to both wooden and metal bricks, at 2 hits left and 5 hits left respectively. Since I couldn't find 2 cracked sprites to metalbricks which maked sense, only 1 was used. 
 
-This proyect uses a facade type design where the class "HomewordTwoFacade" has a simple implementation of all relevant methods used in this game. Although the game is not playable yet due to lack of GUI tests were used to test the game logic.
-When testing this proyect almost all code can be tested using the "HomewordTwoFacade" method as shown in "BigTestT2".
-The testing class "NotBigTestT2" uses JUNIT tests in order to cover most of the code.
+As another big feature a new brick called GoldenBrick was introduced. The golden is present if there are more than half the bricks of the level, in the other case it dissapears. When a GoldenBrick is hit the goes automatically to the next level, if there are no levels left the game ends. There is only one GoldenBrick per level.
 
-## Additional Notes
+Now moving to small features, sound was added when bricks are hit. The sound varies depending of the type of brick.
 
-While testing initial settings in "BigTestT2" in line 48, my implementation for the starting level of a game uses a "null" object as  the next level reference since when starting, the next level is not yet added; but the test suggests that the next level should be the same level in order to pass the tests. Therefore, the constructor of "Level_0" was modified in order to only pass this test.
+Lastly, in order to show the remaining balls on the GUI. Images of the ball remaining were implemented in the bottom right corner of the screen.
 
-Initially another proyect was created and then merged with this maven proyect which lead to a lot of problems with the linked git repository. Which is why I opted to create a new branch for the proyect, sorry for the confusion.
+## Code location
 
+The game GUI has a lot methods and clases but can be divided in 3 main sections.
+
+* The BreakoutGameFacotry class, used to create most entites seen in the interface. Most entites use controller components.
+* The Control, is a package in the GUI which has a class which extends components for every entity in the game app that uses a controller.
+* The BreakoutApp, is the class that represents the graphical controler of the game. Some auxiliary methods were used to have a clearer code, suck as: displayCurrentLevel to show the current level on the screen and clearGame to destroy all brick entitites. To handle user inputs the initInput method is used. Global variables are stored in the initGameVars method. InitPhysics is used to handle collisions. InitUI is used to display most of the text seen on screen. And finally update is used to handle the notifications of the game logic controler.
 
