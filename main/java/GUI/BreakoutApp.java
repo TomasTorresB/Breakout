@@ -29,7 +29,8 @@ import static GUI.BreakoutGameFactory.*;
 
 public class BreakoutApp extends GameApplication implements Observer {
     private HomeworkTwoFacade hw2 = new HomeworkTwoFacade();
-    private int cantBricks = 15;
+    Random ran = new Random();
+    private int cantBricks = ran.nextInt(15) + 15;
     private int circlePosX = 640;
     private int circlePosY = 505;
     private int largoBrick = 60;
@@ -211,13 +212,7 @@ public class BreakoutApp extends GameApplication implements Observer {
                                 getGameWorld().addEntities(player2, ball2);
                             }
                             else {
-                                clearGame();
-                                getGameState().increment("GAME OVER",1);
-                                Text text7 = getUIFactory().newText("GAME OVER", Color.DARKGOLDENROD, 22);
-                                text7.setTranslateX(250);
-                                text7.setTranslateY(300);
-                                getGameScene().addUINode(text7);
-                                getGameState().setValue("Level name","RIP");
+                                retry();
                             }
                         }
                     }
@@ -278,11 +273,7 @@ public class BreakoutApp extends GameApplication implements Observer {
                             DisplayCurrentLevel();
                         }
                         else {
-                            getGameState().increment("GAME OVER",1);
-                            Text text8 = getUIFactory().newText("CONGRATULATIONS", Color.DARKGOLDENROD, 22);
-                            text8.setTranslateX(245);
-                            text8.setTranslateY(300);
-                            getGameScene().addUINode(text8);
+                            newGame();
                         }
                     }
                 });
@@ -359,25 +350,16 @@ public class BreakoutApp extends GameApplication implements Observer {
     public void update(Observable o, Object arg) {
         if (arg instanceof String) {
             if (arg.equals("maxLevelScoreUpdate")) {
+                clearGame();
                 getGameState().setValue("Level points",0);
                 getGameState().increment("Levels completed",1);
-                getGameWorld().getEntitiesByType(BreakoutGameType.METALBRICK)
-                        .forEach(e->e.removeFromWorld());
                 DisplayCurrentLevel();
                 getGameState().increment("Levels left",-1);
             } else if (arg.equals("MetalBrickDestroyedUpdate")) {
                 createCircle(circlePosX,circlePosY);
                 circlePosX += 23;
             } else if (arg.equals("Game ended")) {
-                clearGame();
-                getGameState().increment("Levels completed",1);
-                getGameState().increment("GAME OVER",1);
-                getPlayerControl().getEntity().removeFromWorld();
-                getBallControl().getEntity().removeFromWorld();
-                Text text8 = getUIFactory().newText("CONGRATULATIONS!", Color.DARKGOLDENROD, 22);
-                text8.setTranslateX(245);
-                text8.setTranslateY(300);
-                getGameScene().addUINode(text8);
+                newGame();
 
             }
         }
@@ -386,6 +368,30 @@ public class BreakoutApp extends GameApplication implements Observer {
             getGameState().increment("Total points",res);
             getGameState().increment("Level points",res);
         }
+    }
+
+    private void retry(){
+        getDisplay().showConfirmationBox("GAME OVER"+"\nRetry?",yes->{
+            if(yes){
+                startNewGame();
+                hw2 = new HomeworkTwoFacade();
+            }
+            else{
+                exit();
+            }
+        });
+    }
+
+    private void newGame(){
+        getDisplay().showConfirmationBox("CONGRATULATIONS!"+"\nDo you want to play again?",yes->{
+            if(yes){
+                startNewGame();
+                hw2 = new HomeworkTwoFacade();
+            }
+            else{
+                exit();
+            }
+        });
     }
 
     public static void main(String[] args) {
